@@ -1,0 +1,14 @@
+node_modules/
+.DS_Store
+*.log
+.env.local
+build/
+dist/
+coverage/
+backend/uploads/
+.env
+.env.*
+*.key
+*.pem
+credentials.*
+secrets.*
