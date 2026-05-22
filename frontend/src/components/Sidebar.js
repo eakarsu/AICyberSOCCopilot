@@ -22,6 +22,7 @@ const SECTIONS = [
       { path: '/playbooks',     label: 'Playbooks',        hint: 'SOAR runbooks' },
       { path: '/runbooks',      label: 'Runbooks',         hint: 'IR procedures' },
       { path: '/shift-roster',  label: 'Shift Roster',     hint: 'Analyst rotation' },
+      { path: '/on-call',       label: 'On-Call',          hint: 'Escalation policies + pages' },
     ],
   },
   {
@@ -59,12 +60,15 @@ const SECTIONS = [
     title: 'AI · Triage & Response',
     icon: '✨',
     items: [
-      { path: '/ai/triage-alerts',         label: 'Triage Alerts',        hint: 'Rank P1–P4 with rationale' },
-      { path: '/ai/draft-playbook',        label: 'Draft Playbook',       hint: 'Generate SOAR steps' },
-      { path: '/ai/remediation-estimator', label: 'Remediation Estimate', hint: 'Cost + time + resources' },
-      { path: '/ai/breach-narrative',      label: 'Breach Narrative',     hint: 'Executive incident story' },
-      { path: '/ai/shift-handover',        label: 'Shift Handover',       hint: 'Incoming-shift brief' },
-      { path: '/ai/executive-brief',       label: 'Executive Brief',      hint: 'CISO posture summary' },
+      { path: '/ai/triage-alerts',          label: 'Triage Alerts',        hint: 'Rank P1–P4 with rationale' },
+      { path: '/ai/false-positive-reducer', label: 'FP Reducer',           hint: 'Score alert as FP + suppression rule' },
+      { path: '/ai/draft-playbook',         label: 'Draft Playbook',       hint: 'Generate SOAR steps' },
+      { path: '/ai/playbook-recommend',     label: 'Recommend Playbook',   hint: 'Rank existing playbooks vs incident' },
+      { path: '/ai/remediation-estimator',  label: 'Remediation Estimate', hint: 'Cost + time + resources' },
+      { path: '/ai/breach-narrative',       label: 'Breach Narrative',     hint: 'Executive incident story' },
+      { path: '/ai/post-incident-report',   label: 'Post-Incident RCA',    hint: 'RCA + lessons + action items' },
+      { path: '/ai/shift-handover',         label: 'Shift Handover',       hint: 'Incoming-shift brief' },
+      { path: '/ai/executive-brief',        label: 'Executive Brief',      hint: 'CISO posture summary' },
     ],
   },
   {
@@ -72,6 +76,7 @@ const SECTIONS = [
     icon: '🎯',
     items: [
       { path: '/ai/build-hunt',          label: 'Build Hunt',          hint: 'Hypothesis → queries' },
+      { path: '/ai/log-query-copilot',   label: 'Log Query Co-Pilot',  hint: 'NL → SPL / KQL / Lucene / Sigma' },
       { path: '/ai/enrich-ioc',          label: 'Enrich IOC',          hint: 'Add context + pivots' },
       { path: '/ai/mitre-mapper',        label: 'MITRE Mapper',        hint: 'TTP → ATT&CK technique' },
       { path: '/ai/compromise-assess',   label: 'Compromise Assess',   hint: 'Likelihood + IOC list' },
@@ -84,6 +89,7 @@ const SECTIONS = [
     icon: '🔴',
     items: [
       { path: '/ai/red-team',             label: 'Red Team',             hint: 'Attack plan generator' },
+      { path: '/ai/tabletop-exercise',    label: 'Tabletop Exercise',    hint: 'Scenario + injects + facilitator notes' },
       { path: '/ai/phishing-classifier',  label: 'Phishing Classifier',  hint: 'Phish score + indicators' },
       { path: '/ai/policy-diff',          label: 'Policy Diff',          hint: 'Semantic policy diff' },
       { path: '/ai/supply-chain-scan',    label: 'Supply Chain Scan',    hint: '3rd-party risk' },
@@ -93,7 +99,8 @@ const SECTIONS = [
     title: 'Admin',
     icon: '⚙',
     items: [
-      { path: '/webhooks', label: 'Webhooks', hint: 'Outbound integrations' },
+      { path: '/webhooks',     label: 'Webhooks',     hint: 'Outbound integrations' },
+      { path: '/integrations', label: 'Integrations', hint: 'SIEM/EDR + ticketing surfaces' },
     ],
   },
 ];

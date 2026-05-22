@@ -302,6 +302,42 @@ const SAMPLES = {
     { label: 'Vendor breach blast radius',    values: { incident_title: 'Vendor PayrollHub Cloud breach — our exposure', incident_notes: 'Vendor disclosed unauthorized access to their prod DB on 2024-09-12. Confirmed 18k of our employee SSNs + bank details in their scope. No direct intrusion into our systems. Notifying employees + offering 24mo identity-protection.' } },
     { label: 'Insider source-code exfil',     values: { incident_title: 'Departing engineer exfiltrated 12GB of source', incident_notes: 'DLP caught a 12GB USB copy by a resigning engineer the day prior to their last day. Device recovered + forensically imaged. Legal + HR engaged; cease-and-desist sent. Secret-rotation + partial repo scope assessment underway.' } },
   ],
+  // Pass 7 — mechanical backlog
+  'false-positive-reducer': [
+    { label: 'Noisy AV detection on dev box', values: { alert_title: 'AV: Win32/Suspicious.Generic on DEV-BUILD-09', alert_notes: 'Flagged build artifact in C:\\agent\\_work. Same artifact + hash quarantined 12 times this month on same build host. No process injection observed. Defender Cloud confidence: low.' } },
+    { label: 'Beacon-like jitter to NTP',     values: { alert_title: 'Suspected C2 beacon LT-CFO-WONG → time.windows.com', alert_notes: 'Proxy logs: regular 64-byte UDP/123 every 64s. Asset is a Win11 laptop. Destination is Microsoft NTP. Matches W32Time service interval.' } },
+    { label: 'IDS rule fires on vuln scan',   values: { alert_title: 'Snort: SQL injection probe from 10.20.4.18', alert_notes: 'Source 10.20.4.18 is registered Qualys scanner. Scheduled scan window 02:00-04:00 UTC daily. Same rule fires ~400x/day from this IP. No corresponding app logs.' } },
+    { label: 'Failed-login burst, MFA OK',    values: { alert_title: 'Brute force: 87 failed logins for jdoe', alert_notes: 'Auth source: Entra ID. All 87 failures from the same iOS device with stale cached password after rotation. Subsequent success with MFA. No geo anomaly.' } },
+    { label: 'EDR detected admin tool',       values: { alert_title: 'EDR: PsExec.exe launched on SRV-DB-04', alert_notes: 'PsExec invoked by approved sysadmin a.singh from jump host JUMP-OPS-01. Tied to CR-2024-0814 change window. Signed binary, expected workflow.' } },
+  ],
+  'playbook-recommend': [
+    { label: 'Ransomware on file server',     values: { incident_title: 'Suspected ransomware on FILE-SRV-02', incident_notes: 'EDR mass-rename pattern 14:02 UTC, .LOCKED extension, ~840k files. Backups intact (last 6h). 12 shares affected.' } },
+    { label: 'BEC wire fraud',                values: { incident_title: 'BEC wire fraud $487k to attacker bank', incident_notes: 'CFO approved spoofed-CEO wire 2h ago. FBI IC3 filed. Bank fraud team engaged. No system compromise.' } },
+    { label: 'Phishing click + cred harvest', values: { incident_title: 'CFO clicked credential harvester', incident_notes: 'LT-CFO-WONG; user submitted password on cloned M365 portal. Subsequent sign-in from new ASN (Lagos, NG) 14 min ago.' } },
+    { label: 'Public S3 exposure',            values: { incident_title: 'Public S3 bucket exposed 280k PII', incident_notes: 'customer-records-prod public-read for 11d. 14 unique IPs downloaded objects. GDPR window in play.' } },
+    { label: 'Kerberoasting burst',           values: { incident_title: 'Kerberoasting on AD from WS-MKT-44', incident_notes: '187 TGS-REQ RC4 0x17 for 12 SPNs in 6 min from one workstation. No prior 4769 from this host.' } },
+  ],
+  'post-incident-report': [
+    { label: 'Ransomware on FILE-SRV-02',     values: { incident_title: 'Ransomware on FILE-SRV-02 — final report',  timeline_notes: '14:02 EDR mass-rename detected; 14:08 host isolated; 14:21 IR lead engaged; 14:40 backups verified; 16:05 restoration started; 22:30 prod restored from 14:00 snapshot. RCA: stale legacy SMB share, no MFA on service account, no allowlisting on file server.' } },
+    { label: 'BEC wire fraud report',         values: { incident_title: 'BEC wire fraud $487k — full report',         timeline_notes: '09:41 CFO received spoofed-CEO email; 10:55 wire approved; 11:02 wire sent; 13:18 detected when real CEO denied request; 13:25 FBI IC3 filed; 13:40 bank notified, clawback initiated; partial recovery $312k by D+4. RCA: no out-of-band verification policy, look-alike domain not blocked.' } },
+    { label: 'S3 exposure RCA',               values: { incident_title: 'Public S3 bucket exposure — RCA + actions',  timeline_notes: 'Bucket created via Terraform 2024-09-01 with public-read for "convenience". Macie alert 2024-09-12. 14 distinct IPs downloaded. Bucket re-secured 2024-09-12 18:40. RCA: Terraform PR not reviewed by security; no S3 BlockPublicAccess org policy.' } },
+    { label: 'Phishing → OAuth consent',      values: { incident_title: 'OAuth consent abuse on M365 — lessons',     timeline_notes: 'User granted consent to malicious 3rd-party app with Mail.Read scope. Attacker exfil 2 GB mailbox over 6h before MDA alert. Consent revoked, app blocked tenant-wide, user reset. RCA: admin-consent workflow not enabled, scope risk not surfaced to user.' } },
+    { label: 'Insider exfil report',          values: { incident_title: 'Insider source-code exfil — RCA + remediation', timeline_notes: 'DLP caught 12GB USB copy by departing engineer 23:48. Device recovered + imaged. Legal C&D issued. Secret rotation completed for 14 repos. RCA: USB write not blocked for offboarding users; no DLP on personal cloud sync.' } },
+  ],
+  'log-query-copilot': [
+    { label: 'Find PowerShell downloading from typosquats', values: { intent: 'Find PowerShell processes downloading from typosquatted Microsoft domains in the last 24h on Windows endpoints.', platform: 'splunk' } },
+    { label: 'AWS console logins from Tor',                 values: { intent: 'Show AWS console logins originating from Tor exit nodes in the last 7 days.', platform: 'sentinel' } },
+    { label: 'Mass file rename (ransomware)',               values: { intent: 'Detect a single process renaming more than 200 files in 5 minutes on a file server.', platform: 'elastic' } },
+    { label: 'OAuth consent grants to risky apps',          values: { intent: 'Find users who granted OAuth consent to non-verified Azure AD apps with Mail.Read or Files.Read.All scopes.', platform: 'sentinel' } },
+    { label: 'Beaconing C2 timing',                         values: { intent: 'Identify outbound HTTP POST requests with consistent 60-second jitter from a single workstation over the past 4 hours.', platform: 'sigma' } },
+  ],
+  'tabletop-exercise': [
+    { label: 'Ransomware on file server',  values: { threat_profile: 'Ransomware (Conti-like) encrypts FILE-SRV-02 during business hours; backups partially impacted', audience: 'SOC L1/L2, IR lead, IT ops, legal, comms', duration_minutes: 90 } },
+    { label: 'Cloud key compromise',       values: { threat_profile: 'AWS access key for prod deploy IAM user leaked via GitHub; attacker enumerates S3 and creates persistence IAM user', audience: 'SOC, cloud engineering, IR lead, CISO', duration_minutes: 75 } },
+    { label: 'BEC wire fraud',             values: { threat_profile: 'CFO receives a convincing spoofed-CEO email approving $480k acquisition wire; funds leave the bank before detection', audience: 'SOC, IR, finance, legal, exec leadership', duration_minutes: 60 } },
+    { label: 'Insider data exfil',         values: { threat_profile: 'Departing senior engineer copies 12GB of source code to USB then to personal cloud over their final 2 weeks', audience: 'SOC, insider risk, HR, legal, eng leadership', duration_minutes: 90 } },
+    { label: 'OT/ICS pivot from IT',       values: { threat_profile: 'Attacker pivots from corp IT to OT historian via flat VLAN, then attempts engineering-workstation access at manufacturing plant', audience: 'SOC, OT security, plant ops, IR lead, CISO', duration_minutes: 120 } },
+  ],
 };
 
 // GET /api/ai/samples?feature=phishing-classifier
@@ -562,6 +598,118 @@ router.post('/breach-narrative', async (req, res) => {
     }
     const out = await ai.breachNarrative({ incident });
     await record('breach-narrative', { incident }, out, actorOf(req), userIdOf(req));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ============================================================
+// PASS 7 — 5 new mechanical AI verbs (backlog)
+// ============================================================
+
+// AI 17: False-positive reducer
+router.post('/false-positive-reducer', async (req, res) => {
+  try {
+    let alert = req.body?.alert;
+    const { alert_title, alert_notes } = req.body || {};
+    if (!alert && (alert_title || alert_notes)) {
+      alert = { title: alert_title, notes: alert_notes };
+    }
+    if (!alert) {
+      const r = await pool.query(
+        `SELECT alert_id, source, severity, title, status, asset, created_at
+         FROM alerts WHERE status IN ('open','investigating') ORDER BY created_at DESC LIMIT 1`
+      );
+      alert = r.rows[0] || { title: 'AV: Win32/Suspicious.Generic on DEV-BUILD-09', notes: 'Repeated quarantine on same build artifact.' };
+    }
+    let history = req.body?.history;
+    if (!Array.isArray(history)) {
+      try {
+        const h = await pool.query(
+          `SELECT alert_id, title, severity, status, created_at FROM alerts
+           WHERE title ILIKE $1 ORDER BY created_at DESC LIMIT 10`,
+          [`%${String(alert.title || '').slice(0, 40)}%`]
+        );
+        history = h.rows;
+      } catch (_) { history = []; }
+    }
+    const out = await ai.falsePositiveReducer({ alert, history });
+    await record('false-positive-reducer', { alert, history_count: (history || []).length }, out, actorOf(req), userIdOf(req));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// AI 18: Playbook recommender (ranks EXISTING playbooks against incident)
+router.post('/playbook-recommend', async (req, res) => {
+  try {
+    let incident = req.body?.incident;
+    const { incident_title, incident_notes } = req.body || {};
+    if (!incident && (incident_title || incident_notes)) {
+      incident = { title: incident_title, notes: incident_notes };
+    }
+    if (!incident) {
+      const r = await pool.query(
+        `SELECT incident_id, title, severity, status, assignee FROM incidents
+         WHERE status NOT IN ('closed','resolved') ORDER BY opened_at DESC LIMIT 1`
+      );
+      incident = r.rows[0] || { title: 'Suspected ransomware on FILE-SRV-02', severity: 'critical' };
+    }
+    let playbooks = req.body?.playbooks;
+    if (!Array.isArray(playbooks)) {
+      const r = await pool.query(`SELECT * FROM playbooks ORDER BY id ASC LIMIT 50`);
+      playbooks = r.rows;
+    }
+    const out = await ai.playbookRecommend({ incident, playbooks });
+    await record('playbook-recommend', { incident, playbook_count: playbooks.length }, out, actorOf(req), userIdOf(req));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// AI 19: Post-incident report
+router.post('/post-incident-report', async (req, res) => {
+  try {
+    let incident = req.body?.incident;
+    const { incident_title, timeline_notes } = req.body || {};
+    if (!incident && incident_title) {
+      incident = { title: incident_title };
+    }
+    if (!incident) {
+      const r = await pool.query(
+        `SELECT incident_id, title, severity, status, assignee, opened_at FROM incidents
+         ORDER BY opened_at DESC LIMIT 1`
+      );
+      incident = r.rows[0] || { title: 'Ransomware on FILE-SRV-02', severity: 'critical' };
+    }
+    const timeline = req.body?.timeline || timeline_notes || 'detected via EDR; isolated host within 6 min; restored from backup within 8h';
+    const out = await ai.postIncidentReport({ incident, timeline });
+    await record('post-incident-report', { incident }, out, actorOf(req), userIdOf(req));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// AI 20: Log query co-pilot
+router.post('/log-query-copilot', async (req, res) => {
+  try {
+    const input = {
+      intent: req.body?.intent || 'Find PowerShell processes downloading from typosquatted Microsoft domains in the last 24h.',
+      platform: req.body?.platform || 'any',
+      schema_hints: req.body?.schema_hints,
+    };
+    const out = await ai.logQueryCopilot(input);
+    await record('log-query-copilot', input, out, actorOf(req), userIdOf(req));
+    res.json(out);
+  } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// AI 21: Tabletop exercise generator
+router.post('/tabletop-exercise', async (req, res) => {
+  try {
+    const input = {
+      threat_profile: req.body?.threat_profile || 'Ransomware (Conti-like) encrypts FILE-SRV-02 during business hours',
+      audience: req.body?.audience || 'SOC L1/L2, IR lead, IT ops, legal, comms',
+      duration_minutes: parseInt(req.body?.duration_minutes, 10) || 90,
+    };
+    const out = await ai.tabletopExercise(input);
+    await record('tabletop-exercise', input, out, actorOf(req), userIdOf(req));
     res.json(out);
   } catch (e) { res.status(500).json({ error: e.message }); }
 });

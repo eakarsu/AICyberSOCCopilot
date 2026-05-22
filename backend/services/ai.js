@@ -387,6 +387,103 @@ async function breachNarrative({ incident }) {
   return safeJsonParse(r, { summary: '', what_we_did: [] });
 }
 
+// ============================================================
+// PASS 7 — 5 NEW AI VERBS (mechanical backlog from _AUDIT_NOTE.md)
+// ============================================================
+
+// AI 17: False positive reducer
+async function falsePositiveReducer({ alert, history }) {
+  const systemPrompt = `${SOC_SYSTEM_PROMPT} Score the supplied alert as a likely false positive and suggest a tuned suppression rule. Return JSON in this exact shape:
+{
+  "verdict": "false_positive"|"true_positive"|"needs_investigation",
+  "fp_score": number,
+  "reasoning": [string],
+  "matching_history_patterns": [string],
+  "suppression_rule": { "field": string, "operator": string, "value": string, "expires_in_days": number, "scope": string },
+  "tuning_recommendations": [string],
+  "summary": string
+}`;
+  const user = `Alert under review:\n${typeof alert === 'string' ? alert : JSON.stringify(alert, null, 2)}\n\nPrior similar history (if any):\n${JSON.stringify(history || [], null, 2)}`;
+  const r = await callOpenRouter(systemPrompt, user);
+  return safeJsonParse(r, { summary: '', reasoning: [] });
+}
+
+// AI 18: Playbook recommender — rank existing playbooks against incident
+async function playbookRecommend({ incident, playbooks }) {
+  const systemPrompt = `${SOC_SYSTEM_PROMPT} Rank the supplied existing playbooks against the live incident context. Return JSON in this exact shape:
+{
+  "incident_summary": string,
+  "ranked": [{ "playbook_id": string, "name": string, "score": number, "match_reasons": [string], "gaps": [string] }],
+  "recommended_top_choice": string,
+  "rationale": string,
+  "summary": string
+}`;
+  const user = `Incident:\n${typeof incident === 'string' ? incident : JSON.stringify(incident, null, 2)}\n\nExisting playbooks (catalog):\n${JSON.stringify(playbooks || [], null, 2)}`;
+  const r = await callOpenRouter(systemPrompt, user);
+  return safeJsonParse(r, { summary: '', ranked: [] });
+}
+
+// AI 19: Structured post-incident report (RCA / lessons / actions)
+async function postIncidentReport({ incident, timeline }) {
+  const systemPrompt = `${SOC_SYSTEM_PROMPT} Draft a structured post-incident report (RCA + lessons learned + action items). Return JSON in this exact shape:
+{
+  "incident_title": string,
+  "executive_summary": string,
+  "timeline": [{ "ts": string, "event": string, "owner": string }],
+  "root_cause": { "primary": string, "contributing_factors": [string] },
+  "impact": { "users": string, "data": string, "systems": string, "financial_estimate_usd": number },
+  "what_worked": [string],
+  "what_did_not": [string],
+  "lessons_learned": [string],
+  "action_items": [{ "owner": string, "action": string, "due": string, "priority": "P1"|"P2"|"P3" }],
+  "summary": string
+}`;
+  const user = `Incident:\n${typeof incident === 'string' ? incident : JSON.stringify(incident, null, 2)}\n\nTimeline / observations:\n${typeof timeline === 'string' ? timeline : JSON.stringify(timeline || [], null, 2)}`;
+  const r = await callOpenRouter(systemPrompt, user);
+  return safeJsonParse(r, { summary: '', action_items: [] });
+}
+
+// AI 20: Log query co-pilot — NL → SPL / KQL / Lucene / Sigma
+async function logQueryCopilot({ intent, platform, schema_hints }) {
+  const systemPrompt = `${SOC_SYSTEM_PROMPT} Translate the natural-language hunt intent into search queries across multiple SIEM dialects. Return JSON in this exact shape:
+{
+  "intent": string,
+  "queries": {
+    "splunk_spl": string,
+    "sentinel_kql": string,
+    "elastic_lucene": string,
+    "sigma_yaml": string
+  },
+  "fields_used": [string],
+  "assumptions": [string],
+  "false_positive_traps": [string],
+  "summary": string
+}`;
+  const user = `Hunt intent:\n${intent}\n\nPreferred platform (if any): ${platform || 'any'}\nKnown field / schema hints: ${schema_hints || 'use common ECS / CIM names'}`;
+  const r = await callOpenRouter(systemPrompt, user);
+  return safeJsonParse(r, { summary: '', queries: {} });
+}
+
+// AI 21: Tabletop exercise generator
+async function tabletopExercise({ threat_profile, audience, duration_minutes }) {
+  const systemPrompt = `${SOC_SYSTEM_PROMPT} Generate a complete tabletop exercise: scenario, timed injects, facilitator notes, and after-action questions. Return JSON in this exact shape:
+{
+  "scenario_title": string,
+  "audience": string,
+  "duration_minutes": number,
+  "learning_objectives": [string],
+  "scenario_narrative": string,
+  "injects": [{ "t_plus_minutes": number, "inject": string, "expected_response": string, "facilitator_note": string }],
+  "decision_points": [string],
+  "discussion_questions": [string],
+  "success_metrics": [string],
+  "summary": string
+}`;
+  const user = `Threat profile: ${threat_profile}\nAudience: ${audience || 'SOC + IR + IT leadership'}\nTarget duration: ${duration_minutes || 90} minutes`;
+  const r = await callOpenRouter(systemPrompt, user);
+  return safeJsonParse(r, { summary: '', injects: [] });
+}
+
 module.exports = {
   callOpenRouter,
   safeJsonParse,
@@ -407,4 +504,10 @@ module.exports = {
   identityRisk,
   supplyChainScan,
   breachNarrative,
+  // pass 7
+  falsePositiveReducer,
+  playbookRecommend,
+  postIncidentReport,
+  logQueryCopilot,
+  tabletopExercise,
 };

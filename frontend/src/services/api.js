@@ -126,6 +126,39 @@ export const aiIdentityRisk         = (body) => request('/ai/identity-risk',    
 export const aiSupplyChainScan      = (body) => request('/ai/supply-chain-scan',     { method: 'POST', body: JSON.stringify(body || {}) });
 export const aiBreachNarrative      = (body) => request('/ai/breach-narrative',      { method: 'POST', body: JSON.stringify(body || {}) });
 
+// Pass 7 — AI endpoints (5 new mechanical verbs)
+export const aiFalsePositiveReducer = (body) => request('/ai/false-positive-reducer', { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiPlaybookRecommend    = (body) => request('/ai/playbook-recommend',    { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiPostIncidentReport   = (body) => request('/ai/post-incident-report',  { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiLogQueryCopilot      = (body) => request('/ai/log-query-copilot',     { method: 'POST', body: JSON.stringify(body || {}) });
+export const aiTabletopExercise     = (body) => request('/ai/tabletop-exercise',     { method: 'POST', body: JSON.stringify(body || {}) });
+
+// Pass 7 — On-call escalation engine
+export const onCallApi = {
+  policies: {
+    list:   ()         => request('/oncall/policies'),
+    get:    (id)       => request(`/oncall/policies/${id}`),
+    create: (data)     => request('/oncall/policies',       { method: 'POST',   body: JSON.stringify(data) }),
+    update: (id, data) => request(`/oncall/policies/${id}`, { method: 'PUT',    body: JSON.stringify(data) }),
+    remove: (id)       => request(`/oncall/policies/${id}`, { method: 'DELETE' }),
+  },
+  pages: {
+    list:     ()                       => request('/oncall/pages'),
+    get:      (id)                     => request(`/oncall/pages/${id}`),
+    page:     (data)                   => request('/oncall/page',             { method: 'POST', body: JSON.stringify(data) }),
+    ack:      (id)                     => request(`/oncall/pages/${id}/ack`,      { method: 'POST', body: '{}' }),
+    escalate: (id)                     => request(`/oncall/pages/${id}/escalate`, { method: 'POST', body: '{}' }),
+    override: (id, override_to, reason)=> request(`/oncall/pages/${id}/override`, { method: 'POST', body: JSON.stringify({ override_to, reason }) }),
+    resolve:  (id)                     => request(`/oncall/pages/${id}/resolve`,  { method: 'POST', body: '{}' }),
+  },
+};
+
+// Pass 7 — Integrations status (NEEDS-CREDS stubs)
+export const integrationsStatus = {
+  siem:      () => request('/integrations/siem/status'),
+  ticketing: () => request('/integrations/ticketing/status'),
+};
+
 export const aiHistory = (feature, limit = 20) => {
   const qs = new URLSearchParams({ ...(feature ? { feature } : {}), limit }).toString();
   return request(`/ai/history?${qs}`);

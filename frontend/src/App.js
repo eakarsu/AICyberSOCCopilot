@@ -50,8 +50,22 @@ import WebhooksPage from './pages/WebhooksPage';
 import LoginPage from './pages/LoginPage';
 import CustomViewsPage from './pages/CustomViewsPage';
 
+// Pass 7 — 5 mechanical AI pages + on-call + integrations
+import AIFalsePositiveReducerPage from './pages/AIFalsePositiveReducerPage';
+import AIPlaybookRecommendPage from './pages/AIPlaybookRecommendPage';
+import AIPostIncidentReportPage from './pages/AIPostIncidentReportPage';
+import AILogQueryCopilotPage from './pages/AILogQueryCopilotPage';
+import AITabletopExercisePage from './pages/AITabletopExercisePage';
+import OnCallEscalationsPage from './pages/OnCallEscalationsPage';
+import IntegrationsPage from './pages/IntegrationsPage';
+
 import { isAuthed } from './services/api';
 import './App.css';
+
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
 
 function RequireAuth({ children }) {
   const location = useLocation();
@@ -74,6 +88,10 @@ function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/insights/timeline" element={<TimelineView />} />
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/*"
@@ -120,6 +138,15 @@ function App() {
                   <Route path="/ai/identity-risk"         element={<AIIdentityRiskPage />} />
                   <Route path="/ai/supply-chain-scan"     element={<AISupplyChainScanPage />} />
                   <Route path="/ai/breach-narrative"      element={<AIBreachNarrativePage />} />
+                  {/* Pass 7 — 5 new mechanical AI pages */}
+                  <Route path="/ai/false-positive-reducer" element={<AIFalsePositiveReducerPage />} />
+                  <Route path="/ai/playbook-recommend"     element={<AIPlaybookRecommendPage />} />
+                  <Route path="/ai/post-incident-report"   element={<AIPostIncidentReportPage />} />
+                  <Route path="/ai/log-query-copilot"      element={<AILogQueryCopilotPage />} />
+                  <Route path="/ai/tabletop-exercise"      element={<AITabletopExercisePage />} />
+                  {/* Pass 7 — on-call escalations + external integrations */}
+                  <Route path="/on-call"            element={<OnCallEscalationsPage />} />
+                  <Route path="/integrations"       element={<IntegrationsPage />} />
                   {/* Admin */}
                   <Route path="/webhooks"           element={<WebhooksPage />} />
                   {/* SOC Views — custom defensive-security workspace */}

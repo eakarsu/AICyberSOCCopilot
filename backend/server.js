@@ -91,6 +91,15 @@ app.use('/api/webhooks',           authenticateToken, require('./routes/webhooks
 // Mounted BEFORE the catch-all attachments router & 404 handler.
 app.use('/api/custom-views',       authenticateToken, require('./routes/customViews'));
 
+// ---------- Pass 7: On-call escalation engine ----------
+app.use('/api/oncall',             authenticateToken, require('./routes/oncall_escalations'));
+
+// ---------- Pass 7: NEEDS-CREDS vendor integration surfaces ----------
+// SIEM/EDR ingest (Splunk HEC, Sentinel, CrowdStrike, SentinelOne)
+app.use('/api/integrations/siem',      authenticateToken, require('./routes/integrations_siem'));
+// Ticketing connectors (Jira, ServiceNow, PagerDuty)
+app.use('/api/integrations/ticketing', authenticateToken, require('./routes/integrations_ticketing'));
+
 // Attachments router exposes /upload AND /attachments/... so we mount at root.
 app.use('/api',                    authenticateToken, require('./routes/attachments'));
 
