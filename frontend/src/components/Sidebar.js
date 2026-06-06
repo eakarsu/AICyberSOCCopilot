@@ -101,6 +101,8 @@ const SECTIONS = [
     items: [
       { path: '/webhooks',     label: 'Webhooks',     hint: 'Outbound integrations' },
       { path: '/integrations', label: 'Integrations', hint: 'SIEM/EDR + ticketing surfaces' },
+      { path: '/production-gaps', label: 'Production Gaps', hint: 'Missing SOC production capabilities' },
+      { path: '/production-controls', label: 'Production Controls', hint: 'Production SOC launch controls' },
     ],
   },
 ];

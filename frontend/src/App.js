@@ -58,6 +58,8 @@ import AILogQueryCopilotPage from './pages/AILogQueryCopilotPage';
 import AITabletopExercisePage from './pages/AITabletopExercisePage';
 import OnCallEscalationsPage from './pages/OnCallEscalationsPage';
 import IntegrationsPage from './pages/IntegrationsPage';
+import ProductionGapsPage from './pages/ProductionGapsPage';
+import ProductionControlsPage from './pages/ProductionControlsPage';
 
 import { isAuthed } from './services/api';
 import './App.css';
@@ -147,6 +149,8 @@ function App() {
                   {/* Pass 7 — on-call escalations + external integrations */}
                   <Route path="/on-call"            element={<OnCallEscalationsPage />} />
                   <Route path="/integrations"       element={<IntegrationsPage />} />
+                  <Route path="/production-gaps"    element={<ProductionGapsPage />} />
+                  <Route path="/production-controls" element={<ProductionControlsPage />} />
                   {/* Admin */}
                   <Route path="/webhooks"           element={<WebhooksPage />} />
                   {/* SOC Views — custom defensive-security workspace */}
