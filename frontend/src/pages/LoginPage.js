@@ -4,8 +4,8 @@ import { login, setSession } from '../services/api';
 
 export default function LoginPage() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('admin@socops.io');
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -54,10 +54,6 @@ export default function LoginPage() {
         <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={loading}>
           {loading ? 'Signing in...' : 'Sign in'}
         </button>
-
-        <p className="login-hint">
-          Demo creds: <code>admin@socops.io</code> / <code>admin123</code>
-        </p>
       </form>
     </div>
   );

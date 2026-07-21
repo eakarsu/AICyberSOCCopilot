@@ -3,8 +3,14 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "seed": "node seed/seed.js"
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "migrate": "node scripts/migrate.js",
+    "bootstrap-admin": "node scripts/bootstrap-admin.js",
+    "create-admin": "node scripts/bootstrap-admin.js",
+    "seed": "node seed/seed.js",
+    "check": "node --check server.js && node --check routes/workflow.js && node --check domain/socCaseWorkflow.js",
+    "test": "node --test test/*.test.js"
   },
   "dependencies": {
     "cors": "^2.8.5",

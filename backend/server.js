@@ -4,27 +4,10 @@ const helmet = require('helmet');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 
-// Fallback: load OpenRouter creds from canonical source if not present
-if (!process.env.OPENROUTER_API_KEY) {
-  try {
-    const fs = require('fs');
-    const canonPath = '/Users/erolakarsu/projects/beauty-wellness-ai/.env';
-    if (fs.existsSync(canonPath)) {
-      const content = fs.readFileSync(canonPath, 'utf8');
-      const keyMatch = content.match(/^OPENROUTER_API_KEY=(.*)$/m);
-      const modelMatch = content.match(/^OPENROUTER_MODEL=(.*)$/m);
-      if (keyMatch) process.env.OPENROUTER_API_KEY = keyMatch[1].replace(/^"|"$/g, '').trim();
-      if (modelMatch && !process.env.OPENROUTER_MODEL) {
-        process.env.OPENROUTER_MODEL = modelMatch[1].replace(/^"|"$/g, '').trim();
-      }
-    }
-  } catch (e) {
-    console.warn('[openrouter-fallback] could not load canonical creds:', e.message);
-  }
-}
-
 const app = express();
 const PORT = process.env.BACKEND_PORT || 3001;
+const HOST = process.env.HOST || '127.0.0.1';
+const legacyEnabled = process.env.ENABLE_LEGACY_ROUTES === 'true';
 
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: { policy: 'cross-origin' } }));
@@ -33,13 +16,13 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'http://localhost:3000')
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin) return cb(null, true);
-    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) return cb(null, true);
+    if (allowedOrigins.includes(origin)) return cb(null, true);
     return cb(new Error(`Origin ${origin} not allowed by CORS`));
   },
   credentials: true,
 }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.json({ limit: '1mb' }));
+app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
 // Public health endpoint
 app.get('/api/health', (req, res) => {
@@ -54,6 +37,17 @@ const { authenticateToken, rbacEnforce } = require('./middleware/auth');
 
 // Mount-style middleware that requires JWT and enforces RBAC on writes.
 const guard = [authenticateToken, rbacEnforce];
+
+// Supported production boundary: typed, tenant-scoped cases with evidence,
+// approval separation and external-execution recording (never actuation).
+app.use('/api/workflow', authenticateToken, require('./routes/workflow'));
+
+// Historical breadth routes predate tenant scoping. They are quarantined by
+// default and must not be exposed merely to make the old UI appear complete.
+app.use('/api', (req, res, next) => {
+  if (legacyEnabled) return next();
+  return res.status(503).json({ error: 'Legacy routes are disabled; use /api/workflow' });
+});
 
 // ---------- Original CRUD (8) ----------
 app.use('/api/alerts',             guard, require('./routes/alerts'));
@@ -106,6 +100,12 @@ app.use('/api',                    authenticateToken, require('./routes/attachme
 // 404 for any unmatched /api/* path
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found', path: req.originalUrl }));
 
-app.listen(PORT, () => {
-  console.log(`\nAI CyberSOC Copilot API running on http://localhost:${PORT}\n`);
+app.use((err, req, res, next) => {
+  if (res.headersSent) return next(err);
+  console.error('Request failed:', err.message);
+  return res.status(500).json({ error: 'Internal server error' });
+});
+
+app.listen(PORT, HOST, () => {
+  console.log(`\nAI CyberSOC Copilot API running on http://${HOST}:${PORT} (legacy=${legacyEnabled})\n`);
 });

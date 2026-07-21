@@ -3,6 +3,10 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
+if (process.env.ALLOW_DEMO_SEED !== 'true') {
+  throw new Error('Set ALLOW_DEMO_SEED=true for this destructive demo operation');
+}
+
 const pool = new Pool({
   host: process.env.DB_HOST || 'localhost',
   port: process.env.DB_PORT || 5432,

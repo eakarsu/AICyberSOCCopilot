@@ -2,7 +2,10 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
 
-const JWT_SECRET = process.env.JWT_SECRET || 'ai-cyber-soc-copilot-secret-key-2026';
+const JWT_SECRET = process.env.JWT_SECRET || '';
+if (JWT_SECRET.length < 32 || /change|replace|example|default/i.test(JWT_SECRET)) {
+  throw new Error('JWT_SECRET must be a unique value of at least 32 characters');
+}
 
 // Permission matrix: which roles can perform which HTTP methods.
 // - admin:   full
@@ -10,7 +13,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'ai-cyber-soc-copilot-secret-key-20
 // - viewer:  read-only
 const ROLE_METHODS = {
   admin:   new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
-  analyst: new Set(['GET', 'POST', 'PUT', 'PATCH', 'DELETE']),
+  analyst: new Set(['GET', 'POST', 'PUT', 'PATCH']),
   viewer:  new Set(['GET']),
 };
 
@@ -24,6 +27,9 @@ function authenticateToken(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
+    if (!decoded.id || !decoded.tenant_id || !ROLE_METHODS[decoded.role]) {
+      return res.status(401).json({ error: 'Token is missing required identity claims' });
+    }
     req.user = decoded;
     next();
   } catch (err) {

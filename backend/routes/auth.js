@@ -1,56 +1,38 @@
+'use strict';
+
 const express = require('express');
-const router = express.Router();
 const jwt = require('jsonwebtoken');
 const pool = require('../config/database');
 const { authenticateToken, JWT_SECRET } = require('../middleware/auth');
+const { verifyPassword } = require('../services/passwords');
 
-// Fallback users used if the `users` table is empty / not yet seeded.
-const FALLBACK_USERS = [
-  { id: 1, email: 'admin@socops.io',   password: 'admin123',   name: 'SOC Admin',   role: 'admin'   },
-  { id: 2, email: 'analyst@socops.io', password: 'analyst123', name: 'SOC Analyst', role: 'analyst' },
-  { id: 3, email: 'viewer@socops.io',  password: 'viewer123',  name: 'SOC Viewer',  role: 'viewer'  },
-];
+const router = express.Router();
 
-async function findUser(email, password) {
+router.post('/login', async (req, res) => {
+  const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : '';
+  const password = req.body?.password;
+  if (!email.includes('@') || email.length > 255 || typeof password !== 'string' || password.length > 1024) {
+    return res.status(400).json({ error: 'Valid email and password are required' });
+  }
   try {
-    const r = await pool.query(
-      `SELECT id, email, password, name, role FROM users WHERE email = $1 LIMIT 1`,
+    const result = await pool.query(
+      `SELECT id, tenant_id, email, password_hash, name, role
+         FROM users WHERE email = $1 AND tenant_id IS NOT NULL LIMIT 1`,
       [email]
     );
-    if (r.rows.length) {
-      const u = r.rows[0];
-      if (u.password === password) return u;
-      return null;
+    const user = result.rows[0];
+    if (!user || !verifyPassword(password, user.password_hash)) {
+      return res.status(401).json({ error: 'Invalid email or password' });
     }
-  } catch (e) {
-    // table may not exist yet
+    const claims = { id: user.id, tenant_id: user.tenant_id, email: user.email, name: user.name, role: user.role };
+    const token = jwt.sign(claims, JWT_SECRET, { expiresIn: '8h' });
+    return res.json({ token, user: claims });
+  } catch (error) {
+    console.error('Login unavailable:', error.message);
+    return res.status(503).json({ error: 'Authentication service unavailable' });
   }
-  return FALLBACK_USERS.find((u) => u.email === email && u.password === password) || null;
-}
-
-// POST /api/auth/login
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body || {};
-  if (!email || !password) {
-    return res.status(400).json({ error: 'email and password required' });
-  }
-  const user = await findUser(email, password);
-  if (!user) return res.status(401).json({ error: 'Invalid email or password' });
-
-  const token = jwt.sign(
-    { id: user.id, email: user.email, name: user.name, role: user.role },
-    JWT_SECRET,
-    { expiresIn: '24h' }
-  );
-  res.json({
-    token,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
 });
 
-// GET /api/auth/me
-router.get('/me', authenticateToken, (req, res) => {
-  res.json({ user: req.user });
-});
+router.get('/me', authenticateToken, (req, res) => res.json({ user: req.user }));
 
 module.exports = router;
