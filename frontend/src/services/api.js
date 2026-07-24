@@ -1,4 +1,4 @@
-const API_BASE = 'http://localhost:3010/api';
+const API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:3010/api';
 
 const TOKEN_KEY = 'soc_token';
 const USER_KEY = 'soc_user';

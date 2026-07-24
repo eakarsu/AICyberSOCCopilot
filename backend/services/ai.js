@@ -1,25 +1,6 @@
 const https = require('https');
-const fs = require('fs');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
-
-// Fallback: load OpenRouter creds from canonical source if not present
-if (!process.env.OPENROUTER_API_KEY) {
-  try {
-    const canonPath = '/Users/erolakarsu/projects/beauty-wellness-ai/.env';
-    if (fs.existsSync(canonPath)) {
-      const content = fs.readFileSync(canonPath, 'utf8');
-      const keyMatch = content.match(/^OPENROUTER_API_KEY=(.*)$/m);
-      const modelMatch = content.match(/^OPENROUTER_MODEL=(.*)$/m);
-      if (keyMatch) process.env.OPENROUTER_API_KEY = keyMatch[1].replace(/^"|"$/g, '').trim();
-      if (modelMatch && !process.env.OPENROUTER_MODEL) {
-        process.env.OPENROUTER_MODEL = modelMatch[1].replace(/^"|"$/g, '').trim();
-      }
-    }
-  } catch (e) {
-    console.warn('[ai-service] could not load canonical creds:', e.message);
-  }
-}
 
 const OPENROUTER_MODEL = process.env.OPENROUTER_MODEL || 'anthropic/claude-haiku-4.5';
 const SOC_SYSTEM_PROMPT = 'You are a senior security operations analyst and threat intelligence expert. Provide concise, actionable, defender-focused guidance. Always reply in valid JSON when a JSON shape is requested.';
