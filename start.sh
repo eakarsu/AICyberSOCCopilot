@@ -24,8 +24,6 @@ fi
 demo_credentials_email=""
 demo_credentials_password=""
 demo_credentials_tenant="${DEMO_TENANT:-${BOOTSTRAP_TENANT_SLUG:-${GOVERNANCE_TENANT_ID:-${TENANT_ID:-}}}}"
-demo_credentials_tenant="${DEMO_TENANT:-${BOOTSTRAP_TENANT_SLUG:-${GOVERNANCE_TENANT_ID:-${TENANT_ID:-}}}}"
-demo_credentials_tenant="${DEMO_TENANT:-${BOOTSTRAP_TENANT_SLUG:-${GOVERNANCE_TENANT_ID:-${TENANT_ID:-}}}}"
 if [ -n "${PROVISION_ADMIN_EMAIL:-}" ] && [ -n "${PROVISION_ADMIN_PASSWORD:-}" ]; then
   demo_credentials_email="$PROVISION_ADMIN_EMAIL"
   demo_credentials_password="$PROVISION_ADMIN_PASSWORD"
@@ -86,6 +84,16 @@ FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 for directory in backend/node_modules frontend/node_modules; do
   [[ -d "$directory" ]] || { echo "Missing $directory; install dependencies explicitly first." >&2; exit 1; }
 done
+if [[ "${MIGRATE_ON_START:-false}" == "true" ]]; then
+  [[ "${ALLOW_DATABASE_MIGRATION:-0}" == "1" ]] || {
+    echo "MIGRATE_ON_START=true requires ALLOW_DATABASE_MIGRATION=1." >&2
+    exit 1
+  }
+  (cd backend && npm run migrate)
+fi
+if [[ "${ALLOW_BOOTSTRAP_ADMIN:-0}" == "1" ]]; then
+  (cd backend && npm run bootstrap-admin)
+fi
 for port in "$BACKEND_PORT" "$FRONTEND_PORT"; do
   if lsof -nP -iTCP:"$port" -sTCP:LISTEN >/dev/null 2>&1; then echo "Port $port is already in use; refusing to stop another process." >&2; exit 1; fi
 done

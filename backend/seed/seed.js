@@ -20,6 +20,7 @@ async function seed() {
   try {
     console.log('Dropping & recreating tables...');
     await client.query(`
+      DROP TABLE IF EXISTS schema_migrations CASCADE;
       DROP TABLE IF EXISTS ai_results CASCADE;
       DROP TABLE IF EXISTS audit_log CASCADE;
       DROP TABLE IF EXISTS shift_roster CASCADE;

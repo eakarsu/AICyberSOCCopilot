@@ -8,6 +8,15 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const demoEmail = process.env.REACT_APP_DEMO_EMAIL || '';
+  const demoPassword = process.env.REACT_APP_DEMO_PASSWORD || '';
+  const demoCredentialsAvailable = Boolean(demoEmail && demoPassword);
+
+  const fillDemoCredentials = () => {
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError(null);
+  };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -31,6 +40,25 @@ export default function LoginPage() {
 
         {error && <div className="ai-error" style={{ marginBottom: 14 }}>{error}</div>}
 
+        <div className="demo-credentials-panel">
+          <div>
+            <strong>Demo access</strong>
+            <span>Fill the provisioned local account credentials.</span>
+          </div>
+          <button
+            type="button"
+            className="btn-demo-credentials"
+            onClick={fillDemoCredentials}
+            disabled={!demoCredentialsAvailable}
+            aria-label="Auto Fill Demo Credentials"
+          >
+            Auto Fill Demo Credentials
+          </button>
+          {!demoCredentialsAvailable && (
+            <small>Demo credentials are unavailable. Restart the app with ./start.sh.</small>
+          )}
+        </div>
+
         <div className="form-group">
           <label>Email</label>
           <input
@@ -51,15 +79,6 @@ export default function LoginPage() {
             required
           />
         </div>
-        <button
-          type="button"
-          onClick={() => { setEmail(process.env.REACT_APP_DEMO_EMAIL || ''); setPassword(process.env.REACT_APP_DEMO_PASSWORD || ''); }}
-          disabled={!process.env.REACT_APP_DEMO_EMAIL || !process.env.REACT_APP_DEMO_PASSWORD}
-          aria-label="Auto Fill Demo Credentials"
-          style={{ width: '100%', marginBottom: '12px', padding: '10px 14px', borderRadius: '8px', border: '1px solid currentColor', background: 'transparent', cursor: 'pointer' }}
-        >
-          Auto Fill Demo Credentials
-        </button>
         <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={loading}>
           {loading ? 'Signing in...' : 'Sign in'}
         </button>

@@ -649,6 +649,49 @@
   color: #64748b;
   margin-bottom: 18px;
 }
+.demo-credentials-panel {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 14px;
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  border-radius: 12px;
+  background: rgba(34, 211, 238, 0.08);
+}
+.demo-credentials-panel strong,
+.demo-credentials-panel span {
+  display: block;
+}
+.demo-credentials-panel strong {
+  color: #67e8f9;
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+.demo-credentials-panel span,
+.demo-credentials-panel small {
+  color: #94a3b8;
+  font-size: 11.5px;
+  line-height: 1.4;
+}
+.btn-demo-credentials {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #22d3ee;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #0891b2, #4f46e5);
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+}
+.btn-demo-credentials:hover:not(:disabled) {
+  filter: brightness(1.12);
+}
+.btn-demo-credentials:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
 .login-hint {
   margin-top: 14px;
   font-size: 11.5px;
