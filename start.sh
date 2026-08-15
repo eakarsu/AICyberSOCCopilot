@@ -76,9 +76,14 @@ unset demo_credentials_email demo_credentials_password demo_credentials_tenant d
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$PROJECT_DIR"
 [[ -f .env ]] || { echo "Missing .env; copy .env.example." >&2; exit 1; }
+CALLER_MIGRATE_ON_START="${MIGRATE_ON_START-}"
 set -a
 source .env
 set +a
+if [[ -n "$CALLER_MIGRATE_ON_START" ]]; then
+  MIGRATE_ON_START="$CALLER_MIGRATE_ON_START"
+fi
+unset CALLER_MIGRATE_ON_START
 BACKEND_PORT="${BACKEND_PORT:-3001}"
 FRONTEND_PORT="${FRONTEND_PORT:-3000}"
 for directory in backend/node_modules frontend/node_modules; do
