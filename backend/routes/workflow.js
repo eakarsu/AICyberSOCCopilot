@@ -5,9 +5,13 @@ const express = require('express');
 const pool = require('../config/database');
 const { requireRole } = require('../middleware/auth');
 const { validateAlert, validateAction, assertTransition } = require('../domain/socCaseWorkflow');
+const { buildResponsePlaybook, replayEvaluate } = require('../domain/attackPlaybooks');
 
 const router = express.Router();
 const writers = requireRole('analyst', 'admin');
+
+router.post('/playbooks/preview', writers, (req,res) => res.json(buildResponsePlaybook(req.body?.alert||{})));
+router.post('/playbooks/replay', requireRole('admin'), (req,res) => { try { res.json(replayEvaluate(req.body?.examples)); } catch(error) { fail(res,error); } });
 
 function actor(req) { return String(req.user.id); }
 function fail(res, error) {

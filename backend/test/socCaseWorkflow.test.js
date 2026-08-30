@@ -3,6 +3,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { validateAlert, validateAction, assertTransition } = require('../domain/socCaseWorkflow');
+const { buildResponsePlaybook, replayEvaluate } = require('../domain/attackPlaybooks');
 
 test('normalizes a typed alert envelope', () => {
   const alert = validateAlert({ source_system: 'SIEM', source_event_id: 'evt-1', title: 'Suspicious login', severity: 'HIGH', observed_at: '2026-01-01T00:00:00Z' });
@@ -20,3 +21,5 @@ test('disruptive action is explicit and no execution function exists', () => {
   assert.equal(action.disruptive, true);
   assert.throws(() => assertTransition('response_proposed', 'execution_recorded', 'admin'), /not allowed/);
 });
+
+test('ATT&CK mapping proposes approval-gated playbooks and supports replay evaluation',()=>{const alert={title:'PowerShell command from valid account',severity:'critical',tags:['powershell','valid-account']};const playbook=buildResponsePlaybook(alert);assert.deepEqual(playbook.techniques.map(x=>x.techniqueId),['T1059','T1078']);assert.equal(playbook.steps.find(x=>x.disruptive).approvalRequired,true);assert.equal(playbook.automaticExecution,false);assert.equal(replayEvaluate([{alert,expectedTechniqueIds:['T1059','T1078']}]).recall,1);});

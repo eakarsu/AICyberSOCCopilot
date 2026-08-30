@@ -63,3 +63,7 @@ Use ai and alerts as the boundary for one production security operations workflo
 - The launcher now leaves `.env` parsing to the backend and honors assigned ports. Destructive demo seed requires `ALLOW_DEMO_SEED=true`; the root seed facade skips populated data; and acknowledged `create-admin` provisioning neither overwrites an identity nor adds an administrator to a tenant that already has users.
 - A fresh disposable PostgreSQL instance and both services passed `startup_login_session_api`: startup, scrypt credential login, authenticated `/api/auth/me`, and session-backed API access were verified on PostgreSQL `55549`, API `5918`, and UI `5919`.
 - This does not validate SIEM/EDR/SOAR providers, representative security corpora, disruptive response execution, or independent security assessment.
+
+## Extension (2026-08-30)
+
+Added deterministic MITRE ATT&CK mapping, proposal-only response playbooks and replay metrics under `/api/workflow/playbooks`. Disruptive steps are approval-gated and cannot execute automatically. Live telemetry, representative replay corpora and independent security assessment remain open.
