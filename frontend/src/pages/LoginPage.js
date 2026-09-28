@@ -80,7 +80,7 @@ export default function LoginPage() {
           />
         </div>
         <button type="submit" className="btn-primary" style={{ width: '100%', marginTop: 8 }} disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign in'}
+          {loading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
     </div>
