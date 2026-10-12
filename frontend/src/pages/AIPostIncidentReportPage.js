@@ -11,10 +11,10 @@ export default function AIPostIncidentReportPage() {
         { name: 'incident_title',  label: 'Incident title',           kind: 'text',     placeholder: 'Ransomware on FILE-SRV-02 — final report' },
         { name: 'timeline_notes',  label: 'Timeline / observations',  kind: 'textarea', placeholder: '14:02 EDR mass-rename detected; 14:08 host isolated; 14:21 IR engaged; 14:40 backups verified; 16:05 restoration started; 22:30 prod restored.' },
       ]}
-      runner={(body) => aiPostIncidentReport({
+      runner={(body, requestOptions) => aiPostIncidentReport({
         incident: body.incident_title ? { title: body.incident_title } : undefined,
         timeline: body.timeline_notes,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="post-incident-report"
     />

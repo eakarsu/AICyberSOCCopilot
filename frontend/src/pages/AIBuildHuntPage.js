@@ -12,11 +12,11 @@ export default function AIBuildHuntPage() {
         { name: 'environment', label: 'Environment', kind: 'text',     placeholder: 'mixed Windows/Linux endpoints with EDR + SIEM' },
         { name: 'data_sources_csv', label: 'Data Sources (comma-separated)', kind: 'text', placeholder: 'EDR, SIEM, DNS, proxy, identity' },
       ]}
-      runner={(body) => aiBuildHunt({
+      runner={(body, requestOptions) => aiBuildHunt({
         hypothesis: body.hypothesis,
         environment: body.environment,
         data_sources: body.data_sources_csv ? body.data_sources_csv.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{
         hypothesis: 'Adversary is using DNS tunneling for C2 from a corporate workstation.',
         environment: 'mixed Windows/Linux endpoints with EDR + SIEM',

@@ -1,3 +1,5 @@
+import RecordDialog from './RecordDialog';
+import { AIResultValue } from './AIResultView';
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { canWrite } from '../services/api';
 import AttachmentsWidget from './AttachmentsWidget';
@@ -123,6 +125,7 @@ function CrudPage({
   attachmentCollection,
 }) {
   const [items, setItems] = useState([]);
+  const [viewing, setViewing] = useState(null);
   const [editing, setEditing] = useState(null);
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState({});
@@ -264,7 +267,7 @@ function CrudPage({
               </td></tr>
             )}
             {pageRows.map((row) => (
-              <tr key={row.id} onClick={() => writable && openEdit(row)} style={{ cursor: writable ? 'pointer' : 'default' }}>
+              <tr key={row.id} onClick={() => setViewing(row)} style={{ cursor: 'pointer' }} tabIndex={0} onKeyDown={(event) => { if ((event.key === 'Enter' || event.key === ' ') && event.target === event.currentTarget) { event.preventDefault(); (() => setViewing(row))(event); } }}>
                 {tableFields.map((f) => <td key={f.name}>{fmtCell(f, row[f.name], row)}</td>)}
                 {writable && (
                   <td className="row-inline-actions" onClick={(e) => e.stopPropagation()}>
@@ -292,7 +295,8 @@ function CrudPage({
         >Next</button>
       </div>
 
-      {(showNew || editing) && (
+      {viewing && <RecordDialog title={title + ' · Details'} onClose={() => setViewing(null)}><div className="detail-grid">{fields.map((field) => <div className="form-group" key={field.name}><label>{field.label}</label><AIResultValue value={viewing[field.name]} /></div>)}</div>{writable && <div className="sr-actions"><button type="button" className="btn-primary" onClick={() => { const row = viewing; setViewing(null); openEdit(row); }}>Edit</button><button type="button" className="btn-icon danger" onClick={() => { const row = viewing; setViewing(null); del(row); }}>Delete</button></div>}</RecordDialog>}
+{(showNew || editing) && (
         <div className="modal-overlay" onClick={close}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">

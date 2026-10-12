@@ -11,11 +11,11 @@ export default function AIPlaybookRecommendPage() {
         { name: 'incident_title', label: 'Incident title', kind: 'text',     placeholder: 'Suspected ransomware on FILE-SRV-02' },
         { name: 'incident_notes', label: 'Context',        kind: 'textarea', placeholder: 'EDR mass-rename pattern at 14:02 UTC, .LOCKED extension, ~840k files. Backups intact.' },
       ]}
-      runner={(body) => aiPlaybookRecommend({
+      runner={(body, requestOptions) => aiPlaybookRecommend({
         incident: (body.incident_title || body.incident_notes)
           ? { title: body.incident_title, notes: body.incident_notes }
           : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="playbook-recommend"
     />

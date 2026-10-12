@@ -11,11 +11,11 @@ export default function AIBreachNarrativePage() {
         { name: 'incident_title', label: 'Incident title', kind: 'text',     placeholder: 'Suspected ransomware on FILE-SRV-02' },
         { name: 'incident_notes', label: 'Notes / context',kind: 'textarea', placeholder: 'detected via EDR mass-rename pattern; 2 hours since detection; backups intact' },
       ]}
-      runner={(body) => aiBreachNarrative({
+      runner={(body, requestOptions) => aiBreachNarrative({
         incident: (body.incident_title || body.incident_notes)
           ? { title: body.incident_title, notes: body.incident_notes }
           : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="breach-narrative"
     />

@@ -11,11 +11,11 @@ export default function AIFalsePositiveReducerPage() {
         { name: 'alert_title', label: 'Alert title', kind: 'text',     placeholder: 'AV: Win32/Suspicious.Generic on DEV-BUILD-09' },
         { name: 'alert_notes', label: 'Context / evidence', kind: 'textarea', placeholder: 'Same artifact + hash quarantined 12x this month on the same build host. No injection observed.' },
       ]}
-      runner={(body) => aiFalsePositiveReducer({
+      runner={(body, requestOptions) => aiFalsePositiveReducer({
         alert: (body.alert_title || body.alert_notes)
           ? { title: body.alert_title, notes: body.alert_notes }
           : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="false-positive-reducer"
     />

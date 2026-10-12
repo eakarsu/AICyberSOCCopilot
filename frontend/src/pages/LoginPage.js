@@ -1,8 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, setSession } from '../services/api';
 
 export default function LoginPage() {
+  const demoLoginLock = useRef(false);
+  const [demoLoginBusy, setDemoLoginBusy] = useState(false);
+
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,23 +15,33 @@ export default function LoginPage() {
   const demoPassword = process.env.REACT_APP_DEMO_PASSWORD || '';
   const demoCredentialsAvailable = Boolean(demoEmail && demoPassword);
 
-  const fillDemoCredentials = () => {
-    setEmail(demoEmail);
-    setPassword(demoPassword);
+  const submit = async (event, credentials) => {
+    event.preventDefault();
+    setLoading(true);
     setError(null);
-  };
-
-  const submit = async (e) => {
-    e.preventDefault();
-    setLoading(true); setError(null);
     try {
-      const r = await login(email, password);
-      setSession(r.token, r.user);
+      const response = await login(credentials?.email ?? email, credentials?.password ?? password);
+      setSession(response.token, response.user);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const logInAsDemo = async (event) => {
+    if (demoLoginLock.current || !demoCredentialsAvailable) return;
+    demoLoginLock.current = true;
+    setDemoLoginBusy(true);
+    setEmail(demoEmail);
+    setPassword(demoPassword);
+    setError(null);
+    try {
+      await submit(event, { email: demoEmail, password: demoPassword });
+    } finally {
+      demoLoginLock.current = false;
+      setDemoLoginBusy(false);
     }
   };
 
@@ -48,11 +61,11 @@ export default function LoginPage() {
           <button
             type="button"
             className="btn-demo-credentials"
-            onClick={fillDemoCredentials}
-            disabled={!demoCredentialsAvailable}
-            aria-label="Auto Fill Demo Credentials"
+            onClick={logInAsDemo}
+            disabled={demoLoginBusy || loading || !demoCredentialsAvailable}
+            aria-label="Log In as Demo"
           >
-            Auto Fill Demo Credentials
+            {demoLoginBusy ? 'Signing in as Demo...' : 'Log In as Demo'}
           </button>
           {!demoCredentialsAvailable && (
             <small>Demo credentials are unavailable. Restart the app with ./start.sh.</small>

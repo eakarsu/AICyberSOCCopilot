@@ -12,11 +12,11 @@ export default function AIRemediationEstimatorPage() {
         { name: 'incident_severity', label: 'Severity',          kind: 'text',     placeholder: 'critical' },
         { name: 'incident_notes',    label: 'Notes',             kind: 'textarea', placeholder: 'detected via EDR; finance VM; user p.kim' },
       ]}
-      runner={(body) => aiRemediationEstimator({
+      runner={(body, requestOptions) => aiRemediationEstimator({
         incident: (body.incident_title || body.incident_severity || body.incident_notes)
           ? { title: body.incident_title, severity: body.incident_severity, notes: body.incident_notes }
           : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="remediation-estimator"
     />

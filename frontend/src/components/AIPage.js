@@ -1,12 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import AIFieldPresets, { completeExample } from './AIFieldPresets';
 import AIResultDisplay from './AIResultDisplay';
+import { protectPresetRequest } from './SampleIntegrity';
+import useCancelableAI from './useCancelableAI';
 import { aiHistory, aiSamples } from '../services/api';
 
 function AIPage({ title, description, inputs, runner, defaultInput, feature }) {
   const [body, setBody] = useState(defaultInput || {});
-  const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const aiRequest = useCancelableAI();
+  const { loading, result, error, setResult, setError } = aiRequest;
+
+
 
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState([]);
@@ -31,23 +35,14 @@ function AIPage({ title, description, inputs, runner, defaultInput, feature }) {
 
   // Replace the form body with the sample's values (only keys present in the
   // sample are set, so empty-values samples are a no-op for input-less pages).
-  const applySample = (sample) => {
-    setBody({ ...(sample && sample.values ? sample.values : {}) });
+  const presetInputs = (inputs || []).map(field => /JSON/i.test(field.label || '') ? { ...field, type: 'json' } : field);
+
+  const applySample = (sample, index = 0) => {
+    setBody(protectPresetRequest(completeExample(presetInputs, sample || {}, index, title, body), body));
+    setResult(null); setError(null);
   };
 
-  const hasInputs = Array.isArray(inputs) && inputs.length > 0;
-
-  const run = async () => {
-    setLoading(true); setError(null); setResult(null);
-    try {
-      const r = await runner(body);
-      setResult(r);
-    } catch (e) {
-      setError(e.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const run = async () => aiRequest.run((options) => runner(body, options));
 
   const openHistory = async () => {
     setHistoryOpen(true);
@@ -65,7 +60,7 @@ function AIPage({ title, description, inputs, runner, defaultInput, feature }) {
   };
 
   return (
-    <div>
+    <div className="sr-ai-workspace">
       <div className="page-header">
         <div>
           <h2>{title}</h2>
@@ -81,43 +76,68 @@ function AIPage({ title, description, inputs, runner, defaultInput, feature }) {
           <h3>Run AI Copilot</h3>
           <p className="desc">Inputs are optional - leave blank to use defaults / live DB data.</p>
 
-          {hasInputs && samples.length > 0 && (
-            <div className="sample-fill-row" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 12 }}>
-              <span style={{ fontSize: 12, color: '#666', alignSelf: 'center', marginRight: 4 }}>Sample Fill:</span>
-              {samples.map((s, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  className="btn-secondary btn-sample"
-                  style={{ fontSize: 12, padding: '4px 10px' }}
-                  onClick={() => applySample(s)}
-                  title={`Fill form with: ${s.label}`}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          )}
+          <AIFieldPresets
+            fields={presetInputs}
+            samples={samples}
+            context={title}
+            disabled={loading}
+            onFill={applySample}
+          />
+          {aiRequest.notice && <div className="sr-notice" role="status">{aiRequest.notice}</div>}
           {samplesError && (
             <div style={{ fontSize: 12, color: '#a00', marginBottom: 8 }}>
               Could not load samples: {samplesError}
             </div>
           )}
 
-          {(inputs || []).map((f) => (
-            <div key={f.name} className="form-group">
-              <label>{f.label}</label>
-              {f.kind === 'textarea'
-                ? <textarea value={body[f.name] || ''} onChange={(e) => onChange(f.name, e.target.value)} placeholder={f.placeholder || ''} />
-                : <input type="text" value={body[f.name] || ''} onChange={(e) => onChange(f.name, e.target.value)} placeholder={f.placeholder || ''} />
-              }
-            </div>
-          ))}
+          {(inputs || []).map((field) => {
+            const fieldType = field.type || field.kind || 'text';
+            return (
+              <div key={field.name} className="form-group">
+                <label htmlFor={`ai-field-${field.name}`}>{field.label}</label>
+                {fieldType === 'textarea' ? (
+                  <textarea
+                    id={`ai-field-${field.name}`}
+                    value={body[field.name] ?? ''}
+                    onChange={(event) => onChange(field.name, event.target.value)}
+                    placeholder={field.placeholder || ''}
+                  />
+                ) : fieldType === 'select' ? (
+                  <select
+                    id={`ai-field-${field.name}`}
+                    value={body[field.name] ?? ''}
+                    onChange={(event) => onChange(field.name, event.target.value)}
+                  >
+                    {(field.options || []).map((option) => {
+                      const value = typeof option === 'object' ? option.value ?? option.id ?? option.label : option;
+                      const label = typeof option === 'object' ? option.label ?? value : option;
+                      return <option key={String(value)} value={value}>{label}</option>;
+                    })}
+                  </select>
+                ) : (
+                  <input
+                    id={`ai-field-${field.name}`}
+                    type={fieldType === 'number' ? 'number' : 'text'}
+                    min={field.min}
+                    max={field.max}
+                    value={body[field.name] ?? ''}
+                    onChange={(event) => onChange(field.name, event.target.value)}
+                    placeholder={field.placeholder || ''}
+                  />
+                )}
+              </div>
+            );
+          })}
 
           <div style={{ marginTop: 14 }}>
-            <button className="btn-ai" onClick={run} disabled={loading}>
-              {loading ? 'Running...' : 'Run AI Copilot'}
+            <button type="button" className="btn-ai" onClick={run} disabled={loading}>
+              {loading ? 'Running...' : 'Generate with OpenRouter'}
             </button>
+            {loading && (
+              <button type="button" className="btn secondary btn-secondary" onClick={aiRequest.cancel}>
+                Cancel
+              </button>
+            )}
           </div>
         </div>
 

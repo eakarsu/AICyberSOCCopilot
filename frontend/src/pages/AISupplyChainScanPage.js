@@ -11,11 +11,11 @@ export default function AISupplyChainScanPage() {
         { name: 'vendor_name',  label: 'Vendor name',  kind: 'text',     placeholder: 'Acme Legacy Bills Inc.' },
         { name: 'vendor_notes', label: 'Notes',        kind: 'textarea', placeholder: 'tier: low; no SOC 2; processes invoices' },
       ]}
-      runner={(body) => aiSupplyChainScan({
+      runner={(body, requestOptions) => aiSupplyChainScan({
         vendor: (body.vendor_name || body.vendor_notes)
           ? { name: body.vendor_name, notes: body.vendor_notes }
           : undefined,
-      })}
+      }, requestOptions)}
       defaultInput={{}}
       feature="supply-chain-scan"
     />

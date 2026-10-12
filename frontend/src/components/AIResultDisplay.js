@@ -1,3 +1,4 @@
+import ReadableAIReport, { readableLabel, reportText, reportValue } from './AIResultView';
 import React, { useMemo, useState } from 'react';
 
 /* ============================================================
@@ -222,13 +223,13 @@ function ItemCard({ item, index }) {
       <div className="ai-item-body">
         {action && (
           <div className="ai-callout ai-callout-action">
-            <span className="ai-callout-label">{action.key.replace(/_/g, ' ')}</span>
+            <span className="ai-callout-label">{readableLabel(action.key)}</span>
             <Value v={action.value} />
           </div>
         )}
         {ratio && (
           <div className="ai-callout ai-callout-rationale">
-            <span className="ai-callout-label">{ratio.key.replace(/_/g, ' ')}</span>
+            <span className="ai-callout-label">{readableLabel(ratio.key)}</span>
             <Value v={ratio.value} />
           </div>
         )}
@@ -238,7 +239,7 @@ function ItemCard({ item, index }) {
           if (v == null || v === '') return null;
           return (
             <div className="ai-kv" key={k}>
-              <div className="ai-kv-key">{k.replace(/_/g, ' ')}</div>
+              <div className="ai-kv-key">{readableLabel(k)}</div>
               <div className="ai-kv-val"><Value v={v} /></div>
             </div>
           );
@@ -258,11 +259,30 @@ function Value({ v }) {
     return <span className="ai-str">{v}</span>;
   }
   if (Array.isArray(v)) {
-    if (v.length === 0) return <span className="ai-empty">empty</span>;
+    if (v.length === 0) return <span className="ai-empty">None reported.</span>;
     if (v.every((x) => typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean')) {
       return (
         <div className="ai-tag-list">
           {v.map((x, i) => <span key={i} className="ai-tag">{String(x)}</span>)}
+        </div>
+      );
+    }
+    const tableKeys = v.every(isPlainObject)
+      ? [...new Set(v.flatMap((item) => Object.keys(item)))]
+      : [];
+    const compactTable = v.length > 1 && tableKeys.length > 0 && tableKeys.length <= 6
+      && v.every((item) => tableKeys.every((key) => !isPlainObject(item[key]) && !Array.isArray(item[key])));
+    if (compactTable) {
+      return (
+        <div className="sr-table-wrap">
+          <table className="sr-report-table">
+            <thead><tr>{tableKeys.map((key) => <th key={key}>{readableLabel(key)}</th>)}</tr></thead>
+            <tbody>
+              {v.map((row, index) => (
+                <tr key={index}>{tableKeys.map((key) => <td key={key}><Value v={row[key]} /></td>)}</tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
     }
@@ -277,7 +297,7 @@ function Value({ v }) {
       <div className="ai-object">
         {Object.entries(v).map(([k, val]) => (
           <div className="ai-kv" key={k}>
-            <div className="ai-kv-key">{k.replace(/_/g, ' ')}</div>
+            <div className="ai-kv-key">{readableLabel(k)}</div>
             <div className="ai-kv-val"><Value v={val} /></div>
           </div>
         ))}
@@ -295,6 +315,14 @@ function isEmptyValue(v) {
 }
 
 function normalize(result) {
+  // Saved rows can contain a JSON string or fenced JSON rather than an object.
+  // Normalize those through the same sections used by live responses.
+  if (typeof result === 'string') {
+    const parsedString = tryParseJSON(result);
+    if (Array.isArray(parsedString)) return { sections: { items: parsedString }, leadSummary: null };
+    if (isPlainObject(parsedString)) result = parsedString;
+    else return { sections: {}, leadSummary: result.trim() || null, raw: result };
+  }
   // The backend sometimes returns BOTH a fenced ```json``` inside `summary` AND
   // empty default arrays at the top level (e.g. triaged: [], next_steps: []).
   // We must let the PARSED content win over those empty defaults.
@@ -375,15 +403,15 @@ function AIResultDisplay({ result, loading, error }) {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(result, null, 2));
+      await navigator.clipboard.writeText(reportText(reportValue(result)));
       setCopied(true); setTimeout(() => setCopied(false), 1400);
     } catch (_) { /* noop */ }
   };
   const download = () => {
-    const blob = new Blob([JSON.stringify(result, null, 2)], { type: 'application/json' });
+    const blob = new Blob([reportText(reportValue(result))], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
-    a.href = url; a.download = `ai-result-${Date.now()}.json`;
+    a.href = url; a.download = `ai-result-${Date.now()}.txt`;
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -393,10 +421,10 @@ function AIResultDisplay({ result, loading, error }) {
       <div className="ai-panel-header">
         <h4>AI Copilot Result</h4>
         <div className="ai-panel-actions">
-          <button className="ai-tool-btn" onClick={copy} title="Copy JSON">{copied ? '✓ Copied' : '⧉ Copy'}</button>
-          <button className="ai-tool-btn" onClick={download} title="Download JSON">↓ Export</button>
-          <button className="ai-tool-btn" onClick={() => setShowRaw((s) => !s)} title="Show raw JSON">
-            {showRaw ? '⌃ Hide raw' : '⌄ Raw'}
+          <button className="ai-tool-btn" onClick={copy} title="Copy report">{copied ? '✓ Copied' : '⧉ Copy'}</button>
+          <button className="ai-tool-btn" onClick={download} title="Download report">↓ Export</button>
+          <button className="ai-tool-btn" onClick={() => setShowRaw((s) => !s)} title="Show full response">
+            {showRaw ? '⌃ Hide details' : '⌄ Full response'}
           </button>
         </div>
       </div>
@@ -413,20 +441,20 @@ function AIResultDisplay({ result, loading, error }) {
 
         {sectionEntries.map(([k, v]) => (
           <div className="ai-section" key={k}>
-            <div className="ai-section-title">{k.replace(/_/g, ' ')}</div>
+            <div className="ai-section-title">{readableLabel(k)}</div>
             <Value v={v} />
           </div>
         ))}
 
         {showRaw && (
           <div className="ai-section">
-            <div className="ai-section-title">raw payload</div>
-            <pre className="ai-raw-pre">{JSON.stringify(result, null, 2)}</pre>
+            <div className="ai-section-title">Full response</div>
+            <ReadableAIReport result={result} />
           </div>
         )}
 
         {!sectionEntries.length && !leadSummary && !aiError && raw && (
-          <pre className="ai-raw-pre">{String(raw).slice(0, 2000)}</pre>
+          <ReadableAIReport result={raw} />
         )}
       </div>
     </div>

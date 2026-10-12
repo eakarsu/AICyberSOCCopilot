@@ -9,14 +9,14 @@ export default function AILogQueryCopilotPage() {
       description="Translate natural-language hunts into Splunk SPL, Sentinel KQL, Elastic Lucene, and Sigma YAML."
       inputs={[
         { name: 'intent',        label: 'Hunt intent (natural language)', kind: 'textarea', placeholder: 'Find PowerShell processes downloading from typosquatted Microsoft domains in the last 24h on Windows endpoints.' },
-        { name: 'platform',      label: 'Preferred platform',             kind: 'text',     options: ['any','splunk','sentinel','elastic','sigma'] },
+        { name: 'platform',      label: 'Preferred platform',             kind: 'select',   options: ['any','splunk','sentinel','elastic','sigma'] },
         { name: 'schema_hints',  label: 'Schema / field hints (optional)', kind: 'textarea', placeholder: 'Process.parent.name, dns.question.name, http.request.url ...' },
       ]}
-      runner={(body) => aiLogQueryCopilot({
+      runner={(body, requestOptions) => aiLogQueryCopilot({
         intent: body.intent,
         platform: body.platform,
         schema_hints: body.schema_hints,
-      })}
+      }, requestOptions)}
       defaultInput={{ platform: 'any' }}
       feature="log-query-copilot"
     />

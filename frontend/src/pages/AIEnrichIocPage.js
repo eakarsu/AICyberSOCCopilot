@@ -12,11 +12,11 @@ export default function AIEnrichIocPage() {
         { name: 'value',  label: 'IOC Value',  kind: 'text', placeholder: '185.220.101.45' },
         { name: 'source', label: 'Source',     kind: 'text', placeholder: 'AbuseIPDB' },
       ]}
-      runner={(body) => {
+      runner={(body, requestOptions) => {
         const ioc = (body.type && body.value)
           ? { type: body.type, value: body.value, source: body.source }
           : undefined;
-        return aiEnrichIoc({ ioc });
+        return aiEnrichIoc({ ioc }, requestOptions);
       }}
       defaultInput={{}}
       feature="enrich-ioc"
